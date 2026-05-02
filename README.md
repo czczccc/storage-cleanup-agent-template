@@ -1,68 +1,68 @@
-# Storage Cleanup Agent Template
+# 存储清理 Agent 模板
 
-This template turns a storage-analysis and cleanup workflow into a portable playbook that can be used by different coding agents on macOS and Windows.
+这是一个面向多种编码代理的磁盘分析与清理模板，目标是把“先分析、再解释、再确认、最后清理”的流程沉淀成一套可迁移的通用工作流，可用于 macOS 和 Windows。
 
-It is designed for:
+它适合这些代理直接接入：
 
 - Claude Code
 - Hermes
 - OpenClaw
-- any other shell-capable agent that can read prompt files and run local scripts
+- 其他能够读取提示词并运行本地脚本的代理
 
-The workflow is intentionally conservative:
+整套流程刻意采用保守策略：
 
-1. inspect storage first
-2. explain where space is going
-3. classify candidates by risk
-4. ask for confirmation
-5. clean only approved targets
-6. verify before and after
+1. 先盘点存储占用
+2. 解释空间都花在哪里
+3. 按风险分组候选项
+4. 列出确认清单
+5. 只清理已明确批准的路径
+6. 清理后复核前后变化
 
-## What Is Shared vs Agent-Specific
+## 哪些是通用的，哪些是代理相关的
 
-Shared:
+通用部分：
 
-- analysis procedure
-- cleanup safety policy
-- candidate buckets
-- platform scripts
+- 存储分析流程
+- 清理安全边界
+- 候选项分桶规则
+- 双平台脚本
 
-Agent-specific:
+代理相关部分：
 
-- how the instructions are phrased
-- where you paste the prompt
-- whether the agent prefers terse steps or a more guided response style
+- 不同代理的提示词写法
+- 不同代理的接入位置
+- 不同代理偏好的输出风格
 
-## Layout
+## 目录结构
 
 - `prompts/shared-playbook.md`
-  - the core workflow every agent should follow
+  - 所有代理共用的核心工作流
 - `policies/cleanup-buckets.md`
-  - what is usually safe, what needs judgment, and what should be avoided
+  - 哪些通常可清、哪些需要判断、哪些默认不要碰
 - `scripts/macos/`
-  - shell scripts for macOS inspection and approved cleanup
+  - macOS 的分析脚本与批准后删除脚本
 - `scripts/windows/`
-  - PowerShell scripts for Windows inspection and approved cleanup
+  - Windows 的分析脚本与批准后删除脚本
 - `agents/`
-  - adapter prompts for Claude Code, Hermes, and OpenClaw
+  - Claude Code、Hermes、OpenClaw 的适配说明
 
-## Recommended Usage
+## 推荐使用方式
 
-1. Give your agent the adapter prompt for its environment.
-2. Keep `prompts/shared-playbook.md` and `policies/cleanup-buckets.md` alongside it.
-3. Let the agent run the matching platform scripts first.
-4. Require an explicit user confirmation before deletion.
-5. If the user approves, write the approved paths into a plain text manifest and use the platform delete helper in dry-run mode before applying.
+1. 先把对应代理的适配说明接进去。
+2. 保留 `prompts/shared-playbook.md` 和 `policies/cleanup-buckets.md` 作为统一规则来源。
+3. 先运行对应平台的分析脚本。
+4. 删除前必须给用户明确确认。
+5. 用户确认后，把批准的路径写进 manifest 文本文件，再先 dry-run，最后再正式删除。
 
-## Example User Requests
+## 示例请求
 
-- "Analyze my disk usage and show me what is safe to clean first."
-- "Deep clean my Mac, but show me a confirmation list before deleting anything."
-- "Check why Windows says storage is full and separate safe cleanup from risky cleanup."
+- “分析一下我的磁盘占用，先告诉我哪些适合清理。”
+- “深度清理一下我的 Mac，但删除前先给我确认清单。”
+- “看看为什么 Windows 存储爆了，并把安全可删和需要判断的内容分开。”
 
-## Notes
+## 说明
 
-- These scripts focus on discovery, not automatic deletion.
-- The delete helpers only remove paths explicitly listed in a manifest file.
-- They are built to surface reclaimable space safely.
-- Some directories may require Full Disk Access on macOS or elevated permissions on Windows for a complete picture.
+- 这套脚本默认以发现问题和生成清单为主，不会一上来自动删除。
+- 删除辅助脚本只会处理 manifest 里明确列出的路径。
+- 设计目标是尽量安全地挖出可回收空间。
+- 在 macOS 上，某些目录可能需要完整磁盘访问权限；在 Windows 上，某些目录可能需要更高权限才能看全。
